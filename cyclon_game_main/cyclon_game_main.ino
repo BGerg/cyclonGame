@@ -5,6 +5,7 @@
 #endif
 
 int previous_button_state = 0;
+int player_score = 0;
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, 6, NEO_GRB + NEO_KHZ800);
 
 
@@ -39,8 +40,12 @@ uint32_t setBlueColor() {  // Return a non-negative int type
 uint32_t setOffColor() {
     return pixels.Color(0,0,0);
 }
+
+void reset_players_scores() {
+    player_score = 0;
+}
 void show_palyers_colors() {
-    pixels.setBrightness(20);
+    pixels.setBrightness(12);
     pixels.setPixelColor(0, setGreenColor());
     pixels.setPixelColor(8, setGreenColor());
     pixels.fill(setBlueColor(), 1, 7);
@@ -54,33 +59,82 @@ void switch_off_pixels(int fistPixel, int lastPixel) {
     pixels.show();
 }
 
-void blink_pixels(int fistPixel, int lastPixel){
-    for (int i = 0; i < 6; i++) {
-        pixels.fill(pixels.getPixelColor(fistPixel), fistPixel, lastPixel);
-        pixels.show();
-        delay(250);
+void start_blink_pixels(int fistPixel, int lastPixel){
+  
+    for (int i =0 ; i < 10; i++) {
         switch_off_pixels(fistPixel,lastPixel);
         delay(200);
+        pixels.fill(setBlueColor(), fistPixel, lastPixel);
+        pixels.show();
+        delay(250);
     }
 }
 
-void start_running_light() {
-    pixels.setPixelColor(0, setGreenColor());
-    int count = 0;
-    int clearPixelIndex = 0;
-    while (true) {
-      if (count == 16) {
-        count = 0;
-      }
-      switch_off_pixels(clearPixelIndex,clearPixelIndex);
-      pixels.setPixelColor(count, setBlueColor());
-      pixels.show();
-      delay(100);
-      count += 1;
-      clearPixelIndex = count-1;
-    }
-    
+long choose_first_player() {
+    return random(1,3);
 }
+
+void set_player_score() {
+    player_score += 2;
+}
+
+void check_hit() {
+     if (236 == pixels.getPixelColor(0)) {
+        set_player_score();
+     }
+}
+
+void show_players_scores() {
+    if (player_score > 0) {
+        start_blink_pixels(1,player_score);
+    }
+}
+
+bool check_no_winner() {
+  Serial.println(player_score);
+  if (player_score == 8) {
+    start_blink_pixels(0,16);
+    reset_players_scores();
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+void start_running_light() {
+    int onPixelIndex = 0;
+    int offPixelIndex = 0;
+    bool round = true;
+    
+    while (round) {
+        if (onPixelIndex == 16) {
+          onPixelIndex = 0;
+      }
+      switch_off_pixels(offPixelIndex,offPixelIndex);
+      pixels.setPixelColor(0, setGreenColor());
+      pixels.setPixelColor(onPixelIndex, setBlueColor());
+      pixels.show();
+      delay(35);
+      round = stop_running_light();
+      onPixelIndex += 1;
+      offPixelIndex = onPixelIndex-1; 
+   }
+   delay(1000);
+   check_hit();
+}
+    
+bool stop_running_light() {
+      int button_state = read_button_state();
+      if (is_button_latched()) {  // Button state is different compared to last run
+          update_previous_button_state(button_state);
+          if (is_button_released()) {
+              return false;
+              delay(1000);
+          }
+      }
+      return true;
+}
+
 void setup() {
     #if defined (__ARVR_ATtiny85__)
         if(F_CPU == 16000000) clock_prescale_set(clock_div_1);
@@ -95,22 +149,14 @@ void loop() {
     int button_state = read_button_state();
     delay(10);  // Wait for debouncing (this is a crude filtering)
 
-
     show_palyers_colors();
-    blink_pixels(1,7); //First player color blinks
-    switch_off_pixels(0,16);
-    start_running_light();
-    
-    if (is_button_latched()) {  // Button state is different compared to last run
-        update_previous_button_state(button_state);
-        Serial.println(previous_button_state);
-        if (is_button_released()) {
-            for (int i=0; i<16; i++) {  // Set all pixel to blue and lit them up
-                pixels.setPixelColor(i, setBlueColor());
-                pixels.setBrightness(1);
-                pixels.show();
-                delay(100);
-            }
-        }
+    int player_number = choose_first_player();
+    start_blink_pixels(1,7); //First player color blinks
+    delay(10);
+    while (check_no_winner()) {
+        switch_off_pixels(0,16);
+        start_running_light();
+        show_players_scores();
     }
+    
 }
