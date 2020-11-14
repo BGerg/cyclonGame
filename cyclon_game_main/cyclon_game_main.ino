@@ -3,10 +3,13 @@
 #ifdef __AVR__
     #include <avr/power.h>
 #endif
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, 6, NEO_GRB + NEO_KHZ800);
 
 int previous_button_state = 0;
-int player_score = 0;
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, 6, NEO_GRB + NEO_KHZ800);
+int player_one_score = 0;
+int player_two_score = 0;
+int player_number = 0;
+
 
 
 bool is_button_latched() {
@@ -42,7 +45,8 @@ uint32_t setOffColor() {
 }
 
 void reset_players_scores() {
-    player_score = 0;
+    player_one_score = 0;
+    player_two_score = 0;
 }
 void show_palyers_colors() {
     pixels.setBrightness(12);
@@ -64,7 +68,7 @@ void start_blink_pixels(int fistPixel, int lastPixel){
     for (int i =0 ; i < 10; i++) {
         switch_off_pixels(fistPixel,lastPixel);
         delay(200);
-        pixels.fill(setBlueColor(), fistPixel, lastPixel);
+        pixels.fill(set_player_color(), fistPixel, lastPixel);
         pixels.show();
         delay(250);
     }
@@ -74,29 +78,76 @@ long choose_first_player() {
     return random(1,3);
 }
 
+void show_first_player() {
+    if ( player_number == 1 ) {
+        start_blink_pixels(1,7);
+    }
+    else if ( player_number == 2 ) {
+        start_blink_pixels(9,16);
+    }
+      
+}
+
+uint32_t set_player_color() {
+    if ( player_number == 1 ) {
+        return setBlueColor();
+    }
+    else if ( player_number == 2 ) {
+        return setRedColor();
+    }
+}
+
 void set_player_score() {
-    player_score += 2;
+    if (player_number == 1){
+        player_one_score += 2;
+    }
+    else if (player_number == 2) {
+        player_two_score += 2;
+    }
+}
+
+void switch_player() {
+    if (player_number == 1) {
+        player_number = 2;
+    }
+    else if (player_number = 2) {
+        player_number = 1;
+    }
 }
 
 void check_hit() {
+ //  #TODO get information return value type of getPixelColor
      if (236 == pixels.getPixelColor(0)) {
+        set_player_score();
+     }
+     else if (15466496 == pixels.getPixelColor(0))
+     {
         set_player_score();
      }
 }
 
 void show_players_scores() {
-    if (player_score > 0) {
-        start_blink_pixels(1,player_score);
+    if (player_number == 1 && player_one_score > 0) {
+        start_blink_pixels(1,player_one_score);
+    }
+    else if (player_number == 2 && player_two_score > 0) {
+        start_blink_pixels(16-player_two_score,16);
     }
 }
 
 bool check_no_winner() {
-  Serial.println(player_score);
-  if (player_score == 8) {
+  if (player_one_score == 8) {
+    switch_player();
     start_blink_pixels(0,16);
     reset_players_scores();
     return false;
   }
+  else if (player_two_score == 8) {
+    switch_player();
+    start_blink_pixels(0,16);
+    reset_players_scores();
+    return false;
+    }
   else {
     return true;
   }
@@ -112,9 +163,9 @@ void start_running_light() {
       }
       switch_off_pixels(offPixelIndex,offPixelIndex);
       pixels.setPixelColor(0, setGreenColor());
-      pixels.setPixelColor(onPixelIndex, setBlueColor());
+      pixels.setPixelColor(onPixelIndex, set_player_color());
       pixels.show();
-      delay(35);
+      delay(45);
       round = stop_running_light();
       onPixelIndex += 1;
       offPixelIndex = onPixelIndex-1; 
@@ -146,17 +197,18 @@ void setup() {
 }
 
 void loop() {
+    player_number = choose_first_player();
     int button_state = read_button_state();
     delay(10);  // Wait for debouncing (this is a crude filtering)
 
     show_palyers_colors();
-    int player_number = choose_first_player();
-    start_blink_pixels(1,7); //First player color blinks
+    show_first_player();
     delay(10);
     while (check_no_winner()) {
         switch_off_pixels(0,16);
         start_running_light();
         show_players_scores();
+        switch_player();
     }
     
 }
