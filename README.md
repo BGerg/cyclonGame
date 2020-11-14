@@ -18,7 +18,7 @@ START
 6. Ellenőrzés, hogy a zöld led és a "futó" led pozíciója a gombnyomás pillanatában egyezett-e
 7. (ha igen 2 pontal növekednek az adott játékos pontjai)
 8. 12 órai ledtől jobbra vagy balra adott játékos pontjaival egyenlő mennyiségű led villog pár másodpercig.
-9. Ha valaki pontjai elérik a 8-at nyert és az egész gyűrű az ő színével villog párat
-VAGY
+9. Ha valaki pontjai elérik a 8-at nyert és az egész gyűrű az ő színével villog párat  
+VAGY  
 9. Ha még nincs nyertes játékosváltás és 3. pont
 
