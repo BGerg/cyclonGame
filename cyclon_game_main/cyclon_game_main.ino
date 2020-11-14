@@ -127,13 +127,21 @@ void check_hit() {
 }
 
 void show_players_scores() {
-    if (player_number == 1 && player_one_score > 0) {
-        start_blink_pixels(1,player_one_score);
-    }
-    else if (player_number == 2 && player_two_score > 0) {
-        start_blink_pixels(16-player_two_score,16);
+    pixels.setPixelColor(0, setGreenColor());
+    if (player_one_score > 0 || player_two_score > 0) {
+        for (int i =0 ; i < 10; i++) {
+            switch_off_pixels(1,16);
+            delay(200);
+            if (player_one_score > 0) {
+                pixels.fill(setBlueColor(), 1,player_one_score);
+            }
+            pixels.fill(setRedColor(), 16-player_two_score,16);
+            pixels.show();
+            delay(250);
+        }
     }
 }
+
 
 bool check_no_winner() {
   if (player_one_score == 8) {
