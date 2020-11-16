@@ -143,16 +143,14 @@ void show_players_scores() {
 }
 
 
-bool check_no_winner() {
+bool has_winner() {
   if (player_one_score == 8 || player_two_score == 8) {
     switch_player();
     start_blink_pixels(0,16);
     reset_players_scores();
-    return false;
-  }
-  else {
     return true;
   }
+    return false;
 }
 
 void start_running_light() {
@@ -207,7 +205,7 @@ void loop() {
     show_palyers_colors();
     show_first_player();
     delay(10);
-    while (check_no_winner()) {
+    while (!has_winner()) {
         switch_off_pixels(0,16);
         start_running_light();
         show_players_scores();
