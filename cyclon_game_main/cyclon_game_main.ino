@@ -28,15 +28,15 @@ int read_button_state() {
     return digitalRead(2);
 }
 
-uint32_t setRedColor() {  // Return a non-negative int type 
+uint32_t setRedColor() {  // Return a non-negative int type
     return pixels.Color(255,0,0);
 }
 
-uint32_t setGreenColor() {  // Return a non-negative int type 
+uint32_t setGreenColor() {  // Return a non-negative int type
     return pixels.Color(0,255,0);
 }
 
-uint32_t setBlueColor() {  // Return a non-negative int type 
+uint32_t setBlueColor() {  // Return a non-negative int type
     return pixels.Color(0,0,255);
 }
 
@@ -64,7 +64,7 @@ void switch_off_pixels(int fistPixel, int lastPixel) {
 }
 
 void start_blink_pixels(int fistPixel, int lastPixel){
-  
+
     for (int i =0 ; i < 10; i++) {
         switch_off_pixels(fistPixel,lastPixel);
         delay(200);
@@ -85,7 +85,7 @@ void show_first_player() {
     else if ( player_number == 2 ) {
         start_blink_pixels(9,16);
     }
-      
+
 }
 
 uint32_t set_player_color() {
@@ -144,27 +144,22 @@ void show_players_scores() {
 
 
 bool check_no_winner() {
-  if (player_one_score == 8) {
+  if (player_one_score == 8 || player_two_score == 8) {
     switch_player();
     start_blink_pixels(0,16);
     reset_players_scores();
     return false;
   }
-  else if (player_two_score == 8) {
-    switch_player();
-    start_blink_pixels(0,16);
-    reset_players_scores();
-    return false;
-    }
   else {
     return true;
   }
 }
+
 void start_running_light() {
     int onPixelIndex = 0;
     int offPixelIndex = 0;
     bool round = true;
-    
+
     while (round) {
         if (onPixelIndex == 16) {
           onPixelIndex = 0;
@@ -173,15 +168,15 @@ void start_running_light() {
       pixels.setPixelColor(0, setGreenColor());
       pixels.setPixelColor(onPixelIndex, set_player_color());
       pixels.show();
-      delay(45);
+      delay(65);
       round = stop_running_light();
       onPixelIndex += 1;
-      offPixelIndex = onPixelIndex-1; 
+      offPixelIndex = onPixelIndex-1;
    }
    delay(1000);
    check_hit();
 }
-    
+
 bool stop_running_light() {
       int button_state = read_button_state();
       if (is_button_latched()) {  // Button state is different compared to last run
@@ -198,8 +193,8 @@ void setup() {
     #if defined (__ARVR_ATtiny85__)
         if(F_CPU == 16000000) clock_prescale_set(clock_div_1);
     #endif
-  
-    pixels.begin();  
+
+    pixels.begin();
     pinMode(2, INPUT_PULLUP);  // enable internal pull-up
     Serial.begin(9600);
 }
@@ -218,5 +213,5 @@ void loop() {
         show_players_scores();
         switch_player();
     }
-    
+
 }
